@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import hashlib
 import matplotlib
+from tools import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
 
@@ -116,9 +117,25 @@ def search():
         # Générer l’image de la courbe de Rappel/Précision (RP)
 
     # ------------------------ A REMPLACER PAR LES RESULTATS DE LA RECHERCHE ------------------------
-    images_proches = ["to_be_completed.jpg"] * topn
-    rp_img_path = os.path.join("static", "rp_files", "rp_img_files", "test.png")
-    predicted_class = None
+    
+    features_target = extract_combined_model_features(file_path, model_names=model_names)
+    combined_features_db = {}
+    models = []
+    
+    for model_name in model_names:
+        features, _ = load_features_dict(model_name)
+        models.append(features)
+    for img in models[0].keys():
+        combined_features_db[img] = []
+        for model in models:
+            combined_features_db[img].extend(model[img])
+    
+    image_dict = {os.path.basename(path).split('.')[0]: path for path in os.listdir(image_db_folder)}
+
+    images_proches, predicted_class = search_similar_images(features_target, combined_features_db, image_dict, topn=topn, dist_metric=dist_metric)
+    
+    rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename)
+
     # -----------------------------------------------------------------------------------------------
     # Envoi des résultats au frontend
     return jsonify({
@@ -128,6 +145,13 @@ def search():
         'predicted_class': predicted_class,
         'specified_class': specified_class
     })
+
+def deep_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, dict) and isinstance(d.get(k), dict):
+            deep_update(d[k], v)
+        else:
+            d[k] = v
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)

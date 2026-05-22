@@ -1,2 +1,10 @@
 flask
 matplotlib
+numpy
+opencv-python-headless
+scipy
+scikit-learn
+torch
+torchvision
+pillow
+mysql-connector-python
