@@ -4,11 +4,12 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 import hashlib
 import matplotlib
-from tools import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
+from tools import preload_models, extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
 
 app = Flask(__name__)
+preload_models()
 
 # ==========================================================
 # Configuration de l'application
