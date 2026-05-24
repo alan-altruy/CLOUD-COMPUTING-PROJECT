@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y curl unzip wget && rm -rf /var/lib/apt/
 COPY requirements.txt .
 COPY app.py .
 COPY app_utils.py .
+COPY users.json .
 COPY static/ static/
 COPY templates/ templates/
 
