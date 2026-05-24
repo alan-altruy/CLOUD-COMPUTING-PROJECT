@@ -1,6 +1,6 @@
 __pycache__
 .DS_Store
 image.orig/
-static/uploads/
+static/uploads/*
 static/rp_files/rp_img_files/
 static/features/others/
