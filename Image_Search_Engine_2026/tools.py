@@ -243,7 +243,6 @@ def search_similar_images(query_feature, features_dict, image_dict, topn=20, dis
 
     # Extraction des noms de fichiers (avec extension) des images voisines
     images_proches = [os.path.basename(image_dict[v[0]]) for v in voisins if v[0] in image_dict]
-    print(f"[MYTOOLS] >> Voisins trouvés : {images_proches}")
     if image_identique is not None:
         # Si une image identique existe, on extrait son nom de fichier
         img_name = os.path.basename(image_identique)
@@ -309,8 +308,6 @@ def Compute_RP(top, query_image_name, image_class, similar_images):
     with open(rp_file_path, 'w') as s:
         for line in rp:
             s.write(line + '\n')
-
-    print(f"RP enregistré dans {rp_file_path}")
 
     return rp_txt_file
 
