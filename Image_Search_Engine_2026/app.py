@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, request, render_template, jsonify, send_from_directory, session, redirect, url_for
+from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime
@@ -10,6 +11,49 @@ matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Secret key nécessaire pour la session (remplacer en production)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
+
+# Fichier simple pour stocker les utilisateurs en clair (à remplacer par une DB plus tard)
+USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
+
+import json
+
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return {}
+    try:
+        with open(USERS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_users(users):
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(users, f, indent=2)
+
+def verify_credentials(email, password):
+    users = load_users()
+    # users stored as {"email": {"password": "...", "name": "..."}}
+    user = users.get(email)
+    if not user:
+        return False
+    return user.get('password') == password
+
+
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'user' in session:
+            return f(*args, **kwargs)
+        # If GET request, redirect to login page for browser navigation
+        if request.method == 'GET':
+            return redirect(url_for('login'))
+        # For AJAX/POST requests return JSON 401
+        return jsonify({'error': 'Authentication required'}), 401
+    return wrapper
+
 
 #preload_models()
 
@@ -58,10 +102,38 @@ def favicon():
     return send_from_directory('static', 'favicon.ico')
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     return render_template('index.html')
 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+
+    # POST: vérifier les identifiants
+    email = request.form.get('email', '').strip()
+    password = request.form.get('password', '')
+
+    if not email or not password:
+        return jsonify({'success': False, 'message': 'Username and password required'}), 400
+
+    if verify_credentials(email, password):
+        session['user'] = email
+        # rediriger vers la page principale
+        return redirect(url_for('index'))
+
+    return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('index'))
+
 @app.route('/upload', methods=['POST'])
+@login_required
 def upload_image():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -87,6 +159,7 @@ def upload_image():
     return jsonify({'error': 'Invalid file format'})
 
 @app.route('/delete/<filename>', methods=['POST'])
+@login_required
 def delete_image(filename):
     file_path = os.path.join(upload_folder, filename)
 
@@ -96,6 +169,7 @@ def delete_image(filename):
     return jsonify({'deleted': False})
 
 @app.route('/search', methods=['POST'])
+@login_required
 def search():
     filename = request.form.get('filename')
     model_names = sorted(request.form.getlist('descriptor[]'))
