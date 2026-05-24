@@ -202,21 +202,9 @@ def search():
     # ------------------------ A REMPLACER PAR LES RESULTATS DE LA RECHERCHE ------------------------
     
     features_target = extract_combined_model_features(file_path, model_names=model_names)
-    combined_features_db = {}
-    models = []
-    
-    for model_name in model_names:
-        features, _ = load_features_dict(model_name)
-        models.append(features)
-    for img in models[0].keys():
-        combined_features_db[img] = []
-        for model in models:
-            combined_features_db[img].extend(model[img])
-    
-    image_dict = {os.path.basename(path).split('.')[0]: path for path in os.listdir(image_db_folder)}
+    features_db = load_features_dict(model_names=model_names)
 
-    images_proches, predicted_class = search_similar_images(features_target, combined_features_db, image_dict, topn=topn, dist_metric=dist_metric)
-    
+    images_proches, predicted_class = search_similar_images(features_target, features_db, topn=topn, dist_metric=dist_metric)
     rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename)
 
     # -----------------------------------------------------------------------------------------------

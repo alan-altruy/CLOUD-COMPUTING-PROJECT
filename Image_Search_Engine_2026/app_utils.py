@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 
 FEATURES_FOLDER = 'static/features'
 RP_SAVE_DIR = 'static/rp_files'
+IMAGE_DB_FOLDER = 'static/image.orig'
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),  # Taille standard
@@ -138,30 +139,39 @@ def extract_combined_model_features(img_path, model_names):
         features.extend(extract_single_model_features(img_path, model_name))
     return features
 
-def load_features_dict(model_name):
+def get_image_dict():
+    '''dictionnaire nom image et chemin vers l'image dans la BD d'image
+    '''
+    image_dict = {}
+    for filename in os.listdir(IMAGE_DB_FOLDER):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            name_without_ext = os.path.splitext(filename)[0]
+            full_path = os.path.join(IMAGE_DB_FOLDER, filename)
+            image_dict[name_without_ext] = full_path
+    return image_dict
+
+def load_features_dict(model_names):
     """
-    Charge les vecteurs de caractéristiques depuis un fichier .pkl correspondant au modèle spécifié.
+    Charge les vecteurs de caractéristiques depuis un fichier .pkl correspondant aux modèles spécifiés.
     Si le fichier n'existe pas, il est automatiquement généré.
 
     Args:
-        model_name (str): Nom du modèle utilisé pour extraire les descripteurs (ex: 'vgg16', 'resnet50', etc.).
+        model_names (list of str): Liste des modèles utilisés pour l'extraction.
 
     Returns:
         tuple:
             - dict: Dictionnaire contenant les caractéristiques extraites pour chaque image.
             - str: Nom combiné des modèles utilisé pour nommer le fichier de caractéristiques.
     """
-    descriptor_label = model_name
+    model_names_sorted = sorted(model_names)
+    descriptor_label = "_".join(model_names_sorted)
     output_folder = FEATURES_FOLDER
     pkl_path = os.path.join(output_folder, f"{descriptor_label}.pkl")
-
-    if not os.path.exists(pkl_path):
-        return None, descriptor_label
 
     with open(pkl_path, 'rb') as f:
         features_dict = pickle.load(f)
 
-    return features_dict, descriptor_label
+    return features_dict
 
 def euclidianDistance(vec1, vec2):
     vec1 = np.array(vec1)
@@ -228,7 +238,7 @@ def getkVoisins(features_dict, query_feature, k=20, dist_metric="euclidean"):
     distances.sort(key=lambda x: x[1])
     return distances[:k]
 
-def search_similar_images(query_feature, features_dict, image_dict, topn=20, dist_metric="euclidean"):
+def search_similar_images(query_feature, features_dict, topn=20, dist_metric="euclidean"):
     """
     Recherche les Top-N images les plus similaires dans la base de données.
 
@@ -238,6 +248,7 @@ def search_similar_images(query_feature, features_dict, image_dict, topn=20, dis
     """
     # Recherche des k plus proches voisins à l'aide de la métrique choisie
     voisins = getkVoisins(features_dict, query_feature, topn, dist_metric)
+    image_dict = get_image_dict()
     # Recherche d'une image identique dans la BD (distance 0.0)
     image_identique = next((image_dict[name] for name, dist in voisins if dist == 0.0 and name in image_dict), None)
 
