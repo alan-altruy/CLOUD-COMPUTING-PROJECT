@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 RUN python -c "from torchvision import models; models.vgg16(weights='DEFAULT')"
 
 COPY . .
-CMD ["python", "web-app.py"]
+ENTRYPOINT ["python", "app_demo.py"]
