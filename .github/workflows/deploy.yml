@@ -1,0 +1,29 @@
+name: Deploy via SSH Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/cloud12/PROJET/Image_Search_Engine_2026
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Stopping containers..."
+            docker compose down
+
+            echo "Rebuilding images..."
+            docker compose up -d --build
