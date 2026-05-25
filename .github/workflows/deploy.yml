@@ -17,13 +17,4 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/cloud12/PROJET/Image_Search_Engine_2026
-
-            echo "Pulling latest code..."
-            git pull origin main
-
-            echo "Stopping containers..."
-            docker compose down
-
-            echo "Rebuilding images..."
-            docker compose up -d --build
+            /usr/local/bin/deploy.sh
