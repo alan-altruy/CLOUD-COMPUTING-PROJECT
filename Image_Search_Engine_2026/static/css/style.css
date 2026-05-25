@@ -574,18 +574,21 @@ body::after {
 
 #imageModal .modal-dialog {
     max-width: 90vw;
+    justify-content: center;
 }
 
 #imageModal .modal-content {
-    background-color: var(--bg-white);
-    border: 1px solid var(--border);
-    border-radius: 1rem;
+    width: fit-content;
+    height: fit-content;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    align-self: center;
+    background: transparent;
+    border-radius: 0.75rem;
 }
 
 #imageModal .modal-body {
     text-align: center;
-    padding: 2rem;
+    padding: 0;
 }
 
 #modalImage {

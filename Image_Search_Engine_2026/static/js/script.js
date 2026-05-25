@@ -104,6 +104,10 @@ $(document).ready(function () {
         $('#imageModal').modal('show');
     }
 
+    // Événement de clic sur les images des résultats pour ouvrir le modal
+    $(document).on('click', '.result-img', function() {
+        openModal(this.src);
+    });
 
     // Événement original
     $('#remove-image').click(function (event) {
