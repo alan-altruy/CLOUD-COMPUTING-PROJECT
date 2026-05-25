@@ -11,38 +11,37 @@
 </head>
 
 <body>
-    <div class="site-wrapper d-flex flex-column align-items-center" style="min-width: 300px;">
-        <div class="header w-100 d-flex justify-content-between align-items-center"
-            style="max-width: 800px; top: 0; z-index: 999; background: transparent;">
+    <div class="site-wrapper">
+        <div class="header">
 
-            <img src="../static/images/logo.svg" alt="Logo" class="logo mb-2"
-                style="max-width: 105px; max-height: 120px; object-fit: contain;">
+            <img src="../static/images/logo.svg" alt="Logo" class="logo"
+                >
 
-            <div style="flex-grow: 1; text-align: center;">
-                <span style="font-weight: bold; font-size: 1.8rem;">Cloud & Edge Computing</span>
+            <div class="flex-grow-1">
+                <span>Cloud & Edge Computing</span>
             </div>
 
-            <div style="font-weight: bold; font-size: 1.2rem; min-width: 100px; text-align: right;">
-                I-ILIA-208
+            <div class="header-right">
+                <div class="course-code-login">I-ILIA-208</div>
             </div>
 
         </div>
 
-        <div class="container bg-dark text-white p-4 shadow rounded" style="opacity: 0.9; max-width: 560px;">
-            <h2 class="text-center mb-3">Connection</h2>
+        <div class="container login-container">
+            <h2 class="login-title">Connection</h2>
 
             <div id="login-alert" class="alert alert-danger d-none" role="alert"></div>
 
-            <form id="login-form" action="/login" method="post" class="p-3 rounded">
+            <form id="login-form" action="/login" method="post">
                 <div class="form-group">
                     <label for="email">Username</label>
-                    <input type="text" class="form-control" id="email" name="email" placeholder="your_username" required>
+                    <input type="text" class="form-control" id="email" name="email" placeholder="Username" required>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="input-group">
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="********" required>
                         <div class="input-group-append">
                             <button class="btn btn-outline-light" type="button" id="toggle-password">Show</button>
                         </div>
@@ -51,10 +50,10 @@
 
                 <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Remember me</label>
+                    <label class="form-check-label" for="remember" style="padding-left: 10px;">Remember me</label>
                 </div>
 
-                <button type="submit" id="login-button" class="btn btn-primary btn-block">Sign In</button>
+                <button type="submit" id="login-button" class="btn btn-primary">Sign In</button>
             </form>
         </div>
     </div>
