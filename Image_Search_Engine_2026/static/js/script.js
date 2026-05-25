@@ -147,5 +147,77 @@ $(document).ready(function () {
             $('#predicted-container').addClass('d-none');
         }
     });
+    
+    $('#search-form').submit(function (event) {
+        event.preventDefault();
+        var filename = $('#filename').val();
+        if (!filename) {
+            alert('Please upload an image first.');
+            return;
+        }
+
+        $('#result-container').empty();
+        $('#rp-curve').attr('src', '').addClass('d-none');
+        $('#predicted-class').text(''); // Réinitialise la classe affichée
+        $('#loading-spinner').removeClass('d-none');
+        $('#search-button').prop('disabled', true);
+
+        $.ajax({
+            url: '/search',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function (data) {
+                $('#loading-spinner').addClass('d-none');
+                $('#search-button').prop('disabled', false);
+
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    $('#result-container').empty();
+                    
+                    let isPlaceholder = data.topn_similar_images.every(img => img === "to_be_completed.jpg");
+
+                    if (isPlaceholder) {
+                        data.topn_similar_images.forEach(function (image) {
+                            $('#result-container').append('<img src="/static/temp_files/' + image + '" class="result-img">');
+                        });
+                    } else {
+                        data.topn_similar_images.forEach(function (image) {
+                            $('#result-container').append('<img src="/static/image.orig/' + image + '" class="result-img">');
+                        });
+                    }
+
+                    if (data.rp_curve) {
+                        var timestamp = new Date().getTime();
+                        $('#rp-curve').attr('src', data.rp_curve + "?t=" + timestamp).removeClass('d-none');
+                    }
+
+                    // Afficher la classe prédite s'il y en a une
+                    const classNames = ["Africa", "Beach", "Buildings", "Buses", "Dinosaurs", "Elephants", "Flowers", "Horses", "Mountains", "Food"];
+
+                    if (data.predicted_class !== undefined && data.predicted_class !== null) {
+                        $('#predicted-class').text("Predicted class: " + classNames[data.predicted_class]);
+                    } else {
+                        $('#predicted-class').text("Predicted class: To be completed");
+                    }
+
+                    if (data.specified_class !== undefined && data.specified_class !== null) {
+                        $('#specified-class').text("Specified class: " + classNames[data.specified_class]);
+                    } else {
+                        $('#specified-class').text("Specified class: No class selected");
+                    }
+
+                    $('#predicted-container').removeClass('d-none');
+                    $('#filename').val(data.filename);
+                
+                }
+            },
+            error: function () {
+                $('#loading-spinner').addClass('d-none');
+                $('#search-button').prop('disabled', false);
+                alert('Error performing search.');
+            }
+        });
+    });
 
 });
