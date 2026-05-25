@@ -30,7 +30,7 @@ COPY templates/ templates/
 # =========================
 # Dataset download
 # =========================
-RUN mkdir -p static/rp_files \
+RUN mkdir -p static/uploads static/rp_files \
  && wget https://cluster.ig.umons.ac.be/workshop_ia/image.orig.zip -O /tmp/image.orig.zip \
  && unzip /tmp/image.orig.zip -d /app/static/ \
  && rm /tmp/image.orig.zip
