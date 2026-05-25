@@ -5,6 +5,8 @@ Petit projet réalisé dans le cadre de l'AA « I-ILIA-208: Cloud & Edge Computi
 
 But : prototype simple d'un moteur de recherche d'images utilisant des features extraites par deep learning pour retrouver des images similaires.
 
+Le principal Objectif de ce projet est de se familiariser avec les concepts de déploiement d'applications dans le cloud, en particulier en utilisant des conteneurs Docker et des services cloud pour héberger une application web.
+
 ## Avancement
 
 ### 2 — Déploiement Cloud (SaaS)
