@@ -6,6 +6,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime
 import hashlib
 import matplotlib
+
+from db import init_db, verify_credentials
 from app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
@@ -14,33 +16,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Secret key nécessaire pour la session (remplacer en production)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
-
-# Fichier simple pour stocker les utilisateurs en clair (à remplacer par une DB plus tard)
-USERS_FILE = os.path.join(os.path.dirname(__file__), 'users.json')
-
-import json
-
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return {}
-    try:
-        with open(USERS_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-def save_users(users):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, indent=2)
-
-def verify_credentials(email, password):
-    users = load_users()
-    # users stored as {"email": {"password": "...", "name": "..."}}
-    user = users.get(email)
-    if not user:
-        return False
-    return user.get('password') == password
-
 
 def login_required(f):
     @wraps(f)
@@ -113,14 +88,14 @@ def login():
         return render_template('login.html')
 
     # POST: vérifier les identifiants
-    email = request.form.get('email', '').strip()
+    username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
 
-    if not email or not password:
+    if not username or not password:
         return jsonify({'success': False, 'message': 'Username and password required'}), 400
 
-    if verify_credentials(email, password):
-        session['user'] = email
+    if verify_credentials(username, password):
+        session['user'] = username
         # rediriger vers la page principale
         return redirect(url_for('index'))
 
@@ -225,4 +200,5 @@ def deep_update(d, u):
             d[k] = v
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True, host='0.0.0.0', port=8080)

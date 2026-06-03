@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', function () {
         hideAlert();
 
         const formData = new FormData(form);
-        const email = formData.get('email') || '';
+        const username = formData.get('username') || '';
         const password = formData.get('password') || '';
 
-        if (!email.trim() || !password.trim()) {
-            showAlert('Please fill in the email and password.');
+        if (!username.trim() || !password.trim()) {
+            showAlert('Please fill in the username and password.');
             return;
         }
 

@@ -16,11 +16,11 @@ ENV TORCH_HOME=/root/.cache/torch
 # =========================
 # App source code
 # =========================
-COPY app.py .
-COPY app_utils.py .
-COPY users.json .
-COPY static/ static/
-COPY templates/ templates/
+COPY app/app.py .
+COPY app/db.py .
+COPY app/app_utils.py .
+COPY app/static/ static/
+COPY app/templates/ templates/
 RUN mkdir -p static/uploads
 
 # =========================
