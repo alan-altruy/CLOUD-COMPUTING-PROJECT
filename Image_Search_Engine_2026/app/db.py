@@ -11,6 +11,7 @@ def get_db():
     )
 
 def init_db():
+
     db = get_db()
     cursor = db.cursor()
 
@@ -24,13 +25,14 @@ def init_db():
     ).decode()
 
     cursor.execute("""
-        UPDATE users
-        SET password_hash=%s, role='admin'
-        WHERE username=%s
-    """, (password_hash, admin_username))
+        INSERT INTO users (username, password_hash, role)
+        VALUES (%s, %s, 'admin')
+        ON DUPLICATE KEY UPDATE
+            password_hash = VALUES(password_hash),
+            role = 'admin'
+    """, (admin_username, password_hash))
 
     db.commit()
-
     cursor.close()
     db.close()
 
