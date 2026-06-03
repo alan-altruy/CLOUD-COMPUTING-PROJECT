@@ -8,13 +8,15 @@ services:
       - torch_cache:/root/.cache/torch
     depends_on:
       - db
-    env_file:
-      - .env
     environment:
       DB_HOST: db
       DB_USER: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
       DB_NAME: ${MYSQL_DATABASE}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      ENV: ${ENV}
 
   db:
     image: mysql:8

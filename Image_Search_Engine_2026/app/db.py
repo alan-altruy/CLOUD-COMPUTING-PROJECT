@@ -18,6 +18,9 @@ def init_db():
     admin_username = os.getenv("ADMIN_USERNAME")
     admin_password = os.getenv("ADMIN_PASSWORD")
 
+    if not admin_username or not admin_password:
+        raise RuntimeError("ADMIN_USERNAME and ADMIN_PASSWORD must be set in environment variables")
+        
     # hash du nouveau password à chaque start
     password_hash = bcrypt.hashpw(
         admin_password.encode(),

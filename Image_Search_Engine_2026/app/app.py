@@ -14,8 +14,12 @@ matplotlib.use('Agg')
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Secret key nécessaire pour la session (remplacer en production)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev_secret_key')
+secret = os.environ.get("SECRET_KEY")
+
+if not secret:
+    raise RuntimeError("SECRET_KEY is not set")
+
+app.secret_key = secret
 
 def login_required(f):
     @wraps(f)
