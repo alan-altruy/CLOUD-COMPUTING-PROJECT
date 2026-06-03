@@ -3,3 +3,10 @@ services:
     build: .
     ports:
       - "127.0.0.1:8080:8080"
+    volumes:
+      - pip_cache:/root/.cache/pip
+      - torch_cache:/root/.cache/torch
+
+volumes:
+  pip_cache:
+  torch_cache:

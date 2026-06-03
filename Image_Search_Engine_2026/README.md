@@ -35,22 +35,31 @@ Cette application Flask permet de rechercher des images similaires dans une base
 ## Déploiement de l’application
 
 ### Prérequis
+
 - Docker et Docker Compose installés.
 
 ### Étapes
+
 1. **Cloner le projet :**
-    
+
     ```bash
     git clone https://github.com/TValisoa/Image_Search_Engine_2025.git
     cd Image_Search_Engine_2025
     ```
-2. **Construire et lancer les conteneurs :**
+
+2. **Télécharger les images:**
+
+    ```bash
+    sh download_files.sh
+    ```
+
+3. **Construire et lancer les conteneurs :**
 
     ```bash
     docker-compose up --build
     ```
 
-3. **Accéder à l'application :**
+4. **Accéder à l'application :**
 
     - Application Flask (recherche d'images) : [http://localhost:8080](http://localhost:8080)
     - phpMyAdmin (interface de gestion MySQL) : [http://localhost:8081](http://localhost:8081)
@@ -58,7 +67,7 @@ Cette application Flask permet de rechercher des images similaires dans une base
         - **Utilisateur** : `root`  
         - **Mot de passe** : `I-ILIA-208`
 
-4. **Commandes Docker utiles :**
+5. **Commandes Docker utiles :**
 
     ```bash
     docker-compose down -v    # Supprime les conteneurs et les volumes
@@ -67,5 +76,6 @@ Cette application Flask permet de rechercher des images similaires dans une base
     docker exec -it image_retrieval_web bash # Accéder au terminal du conteneur de l'application
     docker stop image_retrieval_web mysql_image_retrieval_db image_retrieval_phpmyadmin # Stopper les conteneurs
     ```  
+
 ---
 © 2025 DeepILIA.

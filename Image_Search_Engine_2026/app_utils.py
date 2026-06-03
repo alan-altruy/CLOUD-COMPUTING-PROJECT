@@ -19,32 +19,22 @@ from torchvision.models import (
     ConvNeXt_Base_Weights
 )
 
-from sklearn.metrics import precision_recall_curve, average_precision_score
 import matplotlib.pyplot as plt
 
 FEATURES_FOLDER = 'static/features'
 RP_SAVE_DIR = 'static/rp_files'
 IMAGE_DB_FOLDER = 'static/image.orig'
 
+# Chargement des modèles pré-entraînés pour l'extraction de caractéristiques
+models.resnet50(weights='DEFAULT')
+models.mobilenet_v2(weights='DEFAULT')
+models.vit_b_16(weights='DEFAULT')
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),  # Taille standard
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-def preload_models():
-
-    models.vgg16(weights=VGG16_Weights.DEFAULT)
-
-    models.resnet50(weights=ResNet50_Weights.DEFAULT)
-
-    models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
-
-    models.mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
-
-    models.convnext_base(weights=ConvNeXt_Base_Weights.DEFAULT)
-
-    print("Tous les modèles sont prêts.")
 
 def vit16_features(img_path):
     """
