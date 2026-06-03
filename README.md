@@ -17,8 +17,9 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 - [x] Interface Web SaaS
 - [x] Configuration d’accès
 - [x] Personnalisation du service
+- [x] Volumes Docker (cache persistant)
+- [x] Base de données (connection)
 - [ ] Base de données (traçabilité)
-- [ ] Volumes Docker (cache persistant)
 - [ ] Mise à l’échelle
 - [ ] Cybersécurité
 - [x] Intégration continue (CI/CD)
