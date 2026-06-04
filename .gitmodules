@@ -1,0 +1,3 @@
+[submodule "android-app"]
+	path = android-app
+	url = https://github.com/alan-altruy/CLOUD-COMPUTING-PROJECT-ANDROID.git
