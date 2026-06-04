@@ -3,7 +3,7 @@ from flask import Flask, request, render_template, jsonify, send_from_directory,
 from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 import matplotlib
 
@@ -13,6 +13,13 @@ matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['SESSION_PERMANENT'] = True
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
 
 secret = os.environ.get("SECRET_KEY")
 
@@ -99,6 +106,7 @@ def login():
         return jsonify({'success': False, 'message': 'Username and password required'}), 400
 
     if verify_credentials(username, password):
+        session.permanent = True
         session['user'] = username
         # rediriger vers la page principale
         return redirect(url_for('index'))
