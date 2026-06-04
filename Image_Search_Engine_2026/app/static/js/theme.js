@@ -1,17 +1,25 @@
+const applyTheme = (theme) => {
+    document.documentElement.setAttribute("data-theme", theme);
+};
+
 const params = new URLSearchParams(window.location.search);
 let theme = params.get("theme");
 
-// 1. si Android impose un thème
+// 1. mode forcé Android
 if (theme === "dark" || theme === "light") {
-    document.documentElement.setAttribute("data-theme", theme);
+    applyTheme(theme);
 }
 
-// 2. sinon AUTO
+// 2. mode auto
 else {
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
 
-    document.documentElement.setAttribute(
-        "data-theme",
-        prefersDark ? "dark" : "light"
-    );
+    const update = () => {
+        applyTheme(mq.matches ? "dark" : "light");
+    };
+
+    update(); // initial load
+
+    // 👇 écoute les changements système
+    mq.addEventListener("change", update);
 }
