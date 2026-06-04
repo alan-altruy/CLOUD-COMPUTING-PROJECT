@@ -101,12 +101,13 @@ def login():
     # POST: vérifier les identifiants
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
+    remember = request.form.get('remember') == 'on'
 
     if not username or not password:
         return jsonify({'success': False, 'message': 'Username and password required'}), 400
 
     if verify_credentials(username, password):
-        session.permanent = True
+        session.permanent = remember
         session['user'] = username
         # rediriger vers la page principale
         return redirect(url_for('index'))
