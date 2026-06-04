@@ -32,3 +32,8 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 ## Usage
 
 Voir le dossier `Image_Search_Engine_2026` pour l'application web et les ressources.
+
+## Liens
+
+- 🌐 Site web : [Accéder à l’application en ligne](https://groupe12.tp-cloud.deepilia.com) - interface SaaS du moteur de recherche multimédia
+- 📱 Application Android : [Voir le dépôt GitHub Android](https://github.com/alan-altruy/CLOUD-COMPUTING-PROJECT-ANDROID.git) - application mobile dédiée à l’accès au moteur de recherche
