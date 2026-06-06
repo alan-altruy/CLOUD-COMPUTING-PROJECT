@@ -51,6 +51,13 @@ $(document).ready(function () {
             success: function (data) {
                 if (data.error) {
                     alert(data.error);
+                    $('#preview').attr('src', '').addClass('d-none');
+                    $('#remove-image').addClass('d-none');
+                    $('#filename').val('');
+                    $('#file').val('');
+                    $('#drop-zone').removeClass('d-none');
+                    $('#preview-container').addClass('d-none');
+                    $('button[type="submit"]').prop('disabled', true);
                 } else {
                     $('#preview').attr('src', data.file_path).removeClass('d-none');
                     $('#filename').val(data.filename);

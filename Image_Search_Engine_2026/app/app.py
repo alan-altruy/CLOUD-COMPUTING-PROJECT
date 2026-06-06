@@ -76,8 +76,18 @@ rp_save_dir = 'static/rp_files'            # Dossier pour enregistrer les fichie
 # ==========================================================
 
 # Vérifie si le fichier possède une extension autorisée
+MAGIC_BYTES = {
+    b'\xff\xd8\xff': 'jpeg',
+    b'\x89PNG\r\n\x1a\n': 'png',
+}
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def is_real_image(file_stream):
+    header = file_stream.read(8)
+    file_stream.seek(0)
+    return any(header[:len(magic)] == magic for magic in MAGIC_BYTES)
 
 # Génère un nouveau nom pour l’image reçue côté serveur afin d’éviter les doublons
 def new_image_name(extension='jpg'):
@@ -144,7 +154,7 @@ def upload_image():
 
     file = request.files['file']
 
-    if file and allowed_file(file.filename):
+    if file and allowed_file(file.filename) and is_real_image(file):
         file_hash = hash_file(file)
         for existing_file in os.listdir(upload_folder):
             existing_path = os.path.join(upload_folder, existing_file)
