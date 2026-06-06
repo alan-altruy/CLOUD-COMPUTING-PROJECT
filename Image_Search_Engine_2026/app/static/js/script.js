@@ -61,8 +61,12 @@ $(document).ready(function () {
 
                 }
             },
-            error: function () {
-                alert('Error uploading file.');
+            error: function (response) {
+                var msg = 'Error uploading file.';
+                if (response.status === 429) {
+                    try { msg = JSON.parse(response.responseText).error; } catch(e) {}
+                }
+                alert(msg);
             }
         });
     }
@@ -216,10 +220,14 @@ $(document).ready(function () {
                 
                 }
             },
-            error: function () {
+            error: function (response) {
                 $('#loading-spinner').addClass('d-none');
                 $('#search-button').prop('disabled', false);
-                alert('Error performing search.');
+                var msg = 'Error performing search.';
+                if (response.status === 429) {
+                    try { msg = JSON.parse(response.responseText).error; } catch(e) {}
+                }
+                alert(msg);
             }
         });
     });

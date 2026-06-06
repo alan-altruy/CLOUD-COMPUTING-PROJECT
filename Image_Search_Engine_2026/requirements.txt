@@ -10,3 +10,4 @@ pillow==9.4.0
 matplotlib==3.7.2
 mysql-connector-python==8.1.0
 bcrypt==4.0.1
+flask-limiter==3.5.0

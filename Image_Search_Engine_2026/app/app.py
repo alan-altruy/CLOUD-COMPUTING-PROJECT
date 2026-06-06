@@ -2,6 +2,9 @@ import os
 import time
 from flask import Flask, request, render_template, jsonify, send_from_directory, session, redirect, url_for
 from functools import wraps
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_limiter.errors import RateLimitExceeded
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timedelta
@@ -14,6 +17,17 @@ matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[],
+    storage_uri="memory://"
+)
+
+@app.errorhandler(RateLimitExceeded)
+def handle_rate_limit(e):
+    return jsonify({'error': 'Rate limit exceeded. Please wait before retrying.'}), 429
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_PERMANENT'] = True
 
@@ -123,6 +137,7 @@ def logout():
 
 @app.route('/upload', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def upload_image():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'})
@@ -159,6 +174,7 @@ def delete_image(filename):
 
 @app.route('/search', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def search():
     filename = request.form.get('filename')
     model_names = sorted(request.form.getlist('descriptor[]'))
