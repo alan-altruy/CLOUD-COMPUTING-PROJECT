@@ -21,7 +21,7 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 - [x] Base de données (connection)
 - [x] Base de données (traçabilité)
 - [ ] Mise à l’échelle
-- [ ] Cybersécurité
+- [x] Cybersécurité
 - [x] Intégration continue (CI/CD)
 
 ## Auteurs
