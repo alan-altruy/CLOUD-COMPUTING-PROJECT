@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: image-search-webapp:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        env:
+        - name: DB_HOST
+          value: "mysql"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MYSQL_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MYSQL_DATABASE
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "250m"
+            memory: "512Mi"
+        volumeMounts:
+        - name: torch-cache
+          mountPath: /root/.cache/torch
+      volumes:
+      - name: torch-cache
+        persistentVolumeClaim:
+          claimName: torch-cache
