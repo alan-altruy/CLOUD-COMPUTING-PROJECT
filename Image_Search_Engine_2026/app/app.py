@@ -1,4 +1,5 @@
 import os
+import time
 from flask import Flask, request, render_template, jsonify, send_from_directory, session, redirect, url_for
 from functools import wraps
 from werkzeug.utils import secure_filename
@@ -7,7 +8,7 @@ from datetime import datetime, timedelta
 import hashlib
 import matplotlib
 
-from db import init_db, verify_credentials
+from db import init_db, verify_credentials, log_search, get_search_history
 from app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
@@ -189,11 +190,28 @@ def search():
 
     # ------------------------ A REMPLACER PAR LES RESULTATS DE LA RECHERCHE ------------------------
     
+    t0 = time.time()
     features_target = extract_combined_model_features(file_path, model_names=model_names)
     features_db = load_features_dict(model_names=model_names)
 
     images_proches, predicted_class = search_similar_images(features_target, features_db, topn=topn, dist_metric=dist_metric)
     rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename)
+    elapsed_ms = int((time.time() - t0) * 1000)
+
+    try:
+        log_search(
+            username=session['user'],
+            filename=filename,
+            models_used=model_names,
+            dist_metric=dist_metric,
+            class_filter=specified_class,
+            topn=topn,
+            result_images=images_proches,
+            predicted_class=predicted_class,
+            execution_time_ms=elapsed_ms,
+        )
+    except Exception as e:
+        print(f"[DB] log_search failed: {e}")
 
     # -----------------------------------------------------------------------------------------------
     # Envoi des résultats au frontend
@@ -204,6 +222,13 @@ def search():
         'predicted_class': predicted_class,
         'specified_class': specified_class
     })
+
+@app.route('/history', methods=['GET'])
+@login_required
+def history():
+    limit = min(request.args.get('limit', 50, type=int), 200)
+    return jsonify(get_search_history(session['user'], limit))
+
 
 def deep_update(d, u):
     for k, v in u.items():
