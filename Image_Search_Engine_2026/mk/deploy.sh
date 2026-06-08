@@ -48,6 +48,9 @@ if kubectl rollout status deployment/webapp --timeout=60s; then
     
     echo "✅ Déploiement validé sur http://localhost:8080"
 else
+    echo "❌ Échec : Le déploiement n'est pas stable après 60s."
+    exit 1
+fi
 
 # Nettoyage du dossier temporaire de build
 rm -rf $TMPDIR/*
