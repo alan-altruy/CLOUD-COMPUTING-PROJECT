@@ -54,3 +54,4 @@ fi
 
 # Nettoyage du dossier temporaire de build
 rm -rf $TMPDIR/*
+minikube ssh "docker system prune -f"
