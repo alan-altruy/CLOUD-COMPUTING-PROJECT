@@ -34,6 +34,7 @@ if kubectl rollout status deployment/webapp --timeout=60s; then
     
     echo "=== 7. Exposition sur http://localhost:8080 (via 0.0.0.0) ==="
     # Maintenant on est SÛR que l'app écoute, on peut lancer le port-forward sereinement
+    sleep 2 # Petite pause pour s'assurer que le service est bien à jour avant de forwarder
     kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
     
     echo "Déploiement terminé ! Accédez à l'application via http://localhost:8080"
