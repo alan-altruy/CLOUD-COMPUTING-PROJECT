@@ -20,7 +20,7 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 - [x] Volumes Docker (cache persistant)
 - [x] Base de données (connection)
 - [x] Base de données (traçabilité)
-- [ ] Mise à l’échelle
+- [x] Mise à l’échelle
 - [x] Cybersécurité
 - [x] Intégration continue (CI/CD)
 
