@@ -24,6 +24,11 @@ COPY app/templates/ templates/
 RUN mkdir -p static/uploads
 
 # =========================
+# Python output en mode "streaming" (utile pour les logs en temps réel)
+# =========================
+ENV PYTHONUNBUFFERED=1
+
+# =========================
 # Run app
 # =========================
 CMD ["python", "app.py"]

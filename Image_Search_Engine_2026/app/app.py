@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import hashlib
 import matplotlib
 
-from db import init_db, verify_credentials, log_search, get_search_history
+from db import init_db, verify_credentials, log_search, get_search_history, find_search_history, log_image_descriptor, get_image_descriptor
 from app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
@@ -215,29 +215,54 @@ def search():
         # Générer l’image de la courbe de Rappel/Précision (RP)
 
     # ------------------------ A REMPLACER PAR LES RESULTATS DE LA RECHERCHE ------------------------
-    
-    t0 = time.time()
-    features_target = extract_combined_model_features(file_path, model_names=model_names)
-    features_db = load_features_dict(model_names=model_names)
+    print("[MYAPP] >> Starting search process...")
+    print(f"[MYAPP] >> Search the request in the database with the following parameters: \
+          models={model_names}, dist_metric={dist_metric}, specified_class={specified_class}, topn={topn}")
+    file_hash = hash_file(open(file_path, 'rb'))
+    images_proches, predicted_class = find_search_history(username=session['user'], file_hash=file_hash, models_used=model_names,
+                                                          dist_metric=dist_metric, class_filter=specified_class, topn=topn)
+    if images_proches is not None:
+        print("[MYAPP] >> Search history found in database, skipping search process.")
+        rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename=f"rp_{filename}.png")
+    else:
+        print("[MYAPP] >> No search history found, performing search process.")
+        print("[MYAPP] >> Search descriptors in the database...")
+        features_target = get_image_descriptor(file_hash=file_hash, model_names=model_names)
+        t0 = time.time()
+        if features_target is not None:
+            print("[MYAPP] >> Image descriptor found in database, skipping feature extraction.")
+        else:
+            print("[MYAPP] >> No image descriptor found, extracting features...")
+            features_target = extract_combined_model_features(file_path, model_names=model_names)
 
-    images_proches, predicted_class = search_similar_images(features_target, features_db, topn=topn, dist_metric=dist_metric)
-    rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename)
-    elapsed_ms = int((time.time() - t0) * 1000)
+            try:
+                log_image_descriptor(file_hash=file_hash, model_names=model_names, descriptor=features_target)
+                print("[DB] Image descriptor logged successfully.")
+            except Exception as e:
+                print(f"[DB] log_image_descriptor failed: {e}")
 
-    try:
-        log_search(
-            username=session['user'],
-            filename=filename,
-            models_used=model_names,
-            dist_metric=dist_metric,
-            class_filter=specified_class,
-            topn=topn,
-            result_images=images_proches,
-            predicted_class=predicted_class,
-            execution_time_ms=elapsed_ms,
-        )
-    except Exception as e:
-        print(f"[DB] log_search failed: {e}")
+        features_db = load_features_dict(model_names=model_names)
+
+        images_proches, predicted_class = search_similar_images(features_target, features_db, topn=topn, dist_metric=dist_metric)
+        rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename)
+        elapsed_ms = int((time.time() - t0) * 1000)
+
+        try:
+            log_search(
+                username=session['user'],
+                file_hash=file_hash,
+                models_used=model_names,
+                dist_metric=dist_metric,
+                class_filter=specified_class,
+                topn=topn,
+                result_images=images_proches,
+                predicted_class=predicted_class,
+                execution_time_ms=elapsed_ms,
+            )
+            print("[DB] Search logged successfully.")
+        except Exception as e:
+            print(f"[DB] log_search failed: {e}")
+        
 
     # -----------------------------------------------------------------------------------------------
     # Envoi des résultats au frontend

@@ -1,5 +1,6 @@
 import mysql.connector
 import bcrypt
+import torch
 import os
 import json
 
@@ -61,18 +62,18 @@ def verify_credentials(username, password):
     )
 
 
-def log_search(username, filename, models_used, dist_metric,
+def log_search(username, file_hash, models_used, dist_metric,
                class_filter, topn, result_images, predicted_class, execution_time_ms):
     db = get_db()
     cursor = db.cursor()
     cursor.execute("""
         INSERT INTO search_history
-            (username, filename, models_used, dist_metric, class_filter,
+            (username, file_hash, models_used, dist_metric, class_filter,
              topn, result_images, predicted_class, execution_time_ms)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         username,
-        filename,
+        file_hash,
         ",".join(sorted(models_used)),
         dist_metric,
         class_filter,
@@ -89,11 +90,29 @@ def log_search(username, filename, models_used, dist_metric,
 CLASS_NAMES = ["Africa", "Beach", "Buildings", "Buses", "Dinosaurs",
                "Elephants", "Flowers", "Horses", "Mountains", "Food"]
 
+def find_search_history(username, file_hash, models_used, dist_metric, class_filter, topn):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT result_images, predicted_class
+        FROM search_history
+        WHERE username = %s AND file_hash = %s AND models_used = %s AND dist_metric = %s
+              AND (class_filter <=> %s) AND topn = %s
+        ORDER BY searched_at DESC
+        LIMIT 1
+    """, (username, file_hash, ",".join(sorted(models_used)), dist_metric, class_filter, topn))
+    row = cursor.fetchone()
+    cursor.close()
+    db.close()
+    if row:
+        return json.loads(row['result_images']), row['predicted_class']
+    return None, None
+
 def get_search_history(username, limit=50):
     db = get_db()
     cursor = db.cursor(dictionary=True)
     cursor.execute("""
-        SELECT id, username, filename, models_used, dist_metric, class_filter, topn,
+        SELECT id, username, file_hash, models_used, dist_metric, class_filter, topn,
                result_images, predicted_class, execution_time_ms, searched_at
         FROM search_history
         WHERE username = %s
@@ -111,3 +130,45 @@ def get_search_history(username, limit=50):
         row['class_filter_name'] = CLASS_NAMES[cf] if cf is not None else None
         row['predicted_class_name'] = CLASS_NAMES[pc] if pc is not None else None
     return rows
+
+def log_image_descriptor(file_hash, model_names, descriptor):
+    if hasattr(descriptor, "cpu"):
+        descriptor_list = [float(x) for x in descriptor.cpu().numpy().flatten()]
+    elif hasattr(descriptor, "astype"):
+        descriptor_list = descriptor.astype(float).tolist()
+    else:
+        descriptor_list = [float(x) for x in descriptor]
+
+    descriptor_json = json.dumps(descriptor_list)
+
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute("""
+        INSERT INTO image_descriptors (file_hash, model_name, descriptor)
+        VALUES (%s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            descriptor = VALUES(descriptor),
+            updated_at = CURRENT_TIMESTAMP
+    """, (file_hash, ",".join(sorted(model_names)), descriptor_json)) # Plus besoin de doubler le json.dumps ici
+    
+    db.commit()
+    cursor.close()
+    db.close()
+
+def get_image_descriptor(file_hash, model_names):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT descriptor
+        FROM image_descriptors
+        WHERE file_hash = %s AND model_name = %s
+    """, (file_hash, ",".join(sorted(model_names))))
+    row = cursor.fetchone()
+    cursor.close()
+    db.close()
+    
+    if row:
+        descriptor_list = json.loads(row['descriptor'])
+        return torch.tensor(descriptor_list, dtype=torch.float32)
+    return None
