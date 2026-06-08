@@ -11,30 +11,70 @@ from torchvision import transforms
 import torchvision.models as models
 from sklearn.metrics.pairwise import cosine_distances
 from scipy.spatial.distance import correlation
-from torchvision.models import (
-    VGG16_Weights,
-    ResNet50_Weights,
-    EfficientNet_B0_Weights,
-    MobileNet_V2_Weights,
-    ConvNeXt_Base_Weights
-)
-
 import matplotlib.pyplot as plt
+from torchvision.models import (
+    ResNet50_Weights,
+    MobileNet_V2_Weights,
+)
 
 FEATURES_FOLDER = 'static/features'
 RP_SAVE_DIR = 'static/rp_files'
 IMAGE_DB_FOLDER = 'static/image.orig'
 
-# Chargement des modèles pré-entraînés pour l'extraction de caractéristiques
-models.resnet50(weights='DEFAULT')
-models.mobilenet_v2(weights='DEFAULT')
-models.vit_b_16(weights='DEFAULT')
+MODEL_CACHE = {}
+VIT_MODEL = None
+VIT_TRANSFORM = None
+
+DEVICE = torch.device(
+    'cuda' if torch.cuda.is_available()
+    else 'mps' if torch.backends.mps.is_available()
+    else 'cpu'
+)
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),  # Taille standard
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
+
+def get_model(model_name):
+    global MODEL_CACHE
+
+    if model_name in MODEL_CACHE:
+        return MODEL_CACHE[model_name]
+
+    if model_name == 'resnet50':
+        model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
+        feature_extractor = nn.Sequential(*list(model.children())[:-1])
+
+    elif model_name == 'mobilenet':
+        model = models.mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
+        feature_extractor = nn.Sequential(
+            model.features,
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(start_dim=1)
+        )
+
+    else:
+        raise ValueError(f"Unknown model: {model_name}")
+
+    feature_extractor.eval()
+    feature_extractor = feature_extractor.to(DEVICE)
+
+    MODEL_CACHE[model_name] = feature_extractor
+    return feature_extractor
+
+def get_vit():
+    global VIT_MODEL, VIT_TRANSFORM
+
+    if VIT_MODEL is None:
+        VIT_MODEL = models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
+        VIT_MODEL.eval()
+        VIT_MODEL.to(DEVICE)
+
+        VIT_TRANSFORM = models.ViT_B_16_Weights.DEFAULT.transforms()
+
+    return VIT_MODEL, VIT_TRANSFORM
 
 def vit16_features(img_path):
     """
@@ -43,16 +83,11 @@ def vit16_features(img_path):
     Résultat :
     - `features` : Caractéristiques extraites de l'image.
     """
-    vit = models.vit_b_16(weights=models.ViT_B_16_Weights.DEFAULT)
-    device = torch.device('mps' if torch.backends.mps.is_available() else ('cuda' if torch.cuda.is_available() else 'cpu'))
+    vit, preprocessing = get_vit()
 
     img = Image.open(img_path).convert("RGB")
-    vit=vit.to(device)
 
-    # utilisation de la transformation par défaut pour le modèle VIT
-    preprocessing = models.ViT_B_16_Weights.DEFAULT.transforms()
-
-    img = preprocessing(img).to(device)
+    img = preprocessing(img).to(DEVICE)
 
     # ajout d'une dimension batch
     img = img.unsqueeze(0)
@@ -82,31 +117,13 @@ def extract_single_model_features(img_path, model_name):
         np.ndarray: Vecteur de caractéristiques extrait.
     """
     img = Image.open(img_path).convert("RGB")
-    device = torch.device('mps' if torch.backends.mps.is_available() else ('cuda' if torch.cuda.is_available() else 'cpu'))
-    image = transform(img).unsqueeze(0).to(device)
+    image = transform(img).unsqueeze(0).to(DEVICE)
 
-    if model_name == 'vgg16':
-        model = models.vgg16(weights=VGG16_Weights.DEFAULT)
-        model.classifier = nn.Sequential(*list(model.classifier.children())[:-1])
-        feature_extractor = nn.Sequential(model.features, model.avgpool, nn.Flatten(start_dim=1), model.classifier)
-    elif model_name == 'resnet50':
-        model = models.resnet50(weights=ResNet50_Weights.DEFAULT)
-        feature_extractor = nn.Sequential(*list(model.children())[:-1])
-    elif model_name == "efficientnet":
-        model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)
-        model.classifier = nn.Sequential(*list(model.classifier.children())[:-1])
-        feature_extractor = nn.Sequential(model.features, model.avgpool, nn.Flatten(start_dim=1), model.classifier)
-    elif model_name == 'mobilenet':
-        model = models.mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
-        feature_extractor = nn.Sequential(model.features, nn.AdaptiveAvgPool2d((1, 1)), nn.Flatten(start_dim=1))
-    elif model_name == "convnext":
-        model = models.convnext_base(weights=ConvNeXt_Base_Weights.DEFAULT)
-        feature_extractor = nn.Sequential(model.features, model.avgpool, nn.Flatten(start_dim=1))
-    elif model_name == "vit_b_16":
+    if model_name == "vit_b_16":
         return vit16_features(img_path)
+    else:
+        feature_extractor = get_model(model_name)
 
-    feature_extractor.eval()
-    feature_extractor = feature_extractor.to(device)
     with torch.no_grad():
         features = feature_extractor(image)
     return features.cpu().numpy().squeeze().flatten()
