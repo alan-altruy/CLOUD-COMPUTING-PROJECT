@@ -31,18 +31,23 @@ echo "=== 6. Attente de la stabilisation du déploiement ==="
 # --timeout=60s évite que le script ne bloque indéfiniment si ton code Python a une vraie erreur
 echo "Attente que l'application soit prête..."
 if kubectl rollout status deployment/webapp --timeout=60s; then
-    
     echo "=== 7. Exposition sur http://localhost:8080 (via 0.0.0.0) ==="
-    # Maintenant on est SÛR que l'app écoute, on peut lancer le port-forward sereinement
-    sleep 2 # Petite pause pour s'assurer que le service est bien à jour avant de forwarder
-    kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
+        kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
     
-    echo "Déploiement terminé ! Accédez à l'application via http://localhost:8080"
+    # Attente active (max 5s) que le port réponde réellement
+    for i in {1..5}; do
+        curl -s -o /dev/null http://localhost:8080/health && break
+        echo "Attente du tunnel réseau ($i/5)..."
+        sleep 2
+    done
+
+    if ! curl -s -o /dev/null http://localhost:8080/health; then
+        echo "❌ Échec : Le tunnel port-forward ne répond pas."
+        exit 1
+    fi
+    
+    echo "✅ Déploiement validé sur http://localhost:8080"
 else
-    echo "Le déploiement a échoué ou a mis trop de temps à démarrer."
-    echo "Vérifie les logs avec : kubectl logs deployment/webapp"
-    exit 1
-fi
 
 # Nettoyage du dossier temporaire de build
 rm -rf $TMPDIR/*
