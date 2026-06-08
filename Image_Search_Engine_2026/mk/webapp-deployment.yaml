@@ -1,3 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  type: NodePort # Dit à Minikube d'ouvrir un port externe
+  ports:
+    - port: 8080      # Le port exposé par le service dans le cluster
+      targetPort: 8080 # Le port sur lequel écoute ton conteneur Python
+      nodePort: 30080  # Le port fixe sur lequel tu vas te connecter depuis ta machine (choisir entre 30000 et 32767)
+  selector:
+    app: webapp # Doit correspondre au label 'app: webapp' de tes pods
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,14 +55,20 @@ spec:
         resources:
           requests:
             cpu: "100m"
-            memory: "256Mi"
-          limits:
-            cpu: "250m"
             memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "2Gi"
         volumeMounts:
         - name: torch-cache
           mountPath: /root/.cache/torch
+        - name: pip-cache
+          mountPath: /root/.cache/pip
       volumes:
       - name: torch-cache
         persistentVolumeClaim:
           claimName: torch-cache
+      - name: pip-cache
+        persistentVolumeClaim:
+          claimName: pip-cache
+
