@@ -1,4 +1,7 @@
 #!/bin/bash
+# Force l'utilisation du vrai disque dur dur pour les fichiers temporaires de build
+export TMPDIR=$HOME/minikube_build_tmp
+mkdir -p $TMPDIR
 
 echo "=== 1. Création / Mise à jour des Volumes ==="
 kubectl apply -f mk/volumes.yml
@@ -39,3 +42,6 @@ else
     echo "Vérifie les logs avec : kubectl logs deployment/webapp"
     exit 1
 fi
+
+# Nettoyage du dossier temporaire de build
+rm -rf $TMPDIR/*
