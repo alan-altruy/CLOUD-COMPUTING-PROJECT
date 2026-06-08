@@ -22,11 +22,20 @@ echo "=== 5. Nettoyage des anciens tunnels ==="
 # On tue proprement l'ancien port-forward s'il tournait déjà pour éviter les conflits de port
 pkill -f "port-forward service/webapp-service" || true
 
-echo "=== 6. Exposition sur http://localhost:8080 (via 0.0.0.0) ==="
+echo "=== 6. Attente de la stabilisation du déploiement ==="
 
-# Delai de quelques secondes pour laisser le temps au déploiement de se stabiliser avant de lancer le port-forward
-sleep 5
-# On lance le tunnel en tâche de fond (&) et on vire les logs polluants (> /dev/null)
-kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
-
-echo "Déploiement terminé ! Accédez à l'application via http://localhost:8080"
+# Attend que TOUS les pods du déploiement 'webapp' soient Ready=True
+# --timeout=60s évite que le script ne bloque indéfiniment si ton code Python a une vraie erreur
+echo "Attente que l'application soit prête..."
+if kubectl rollout status deployment/webapp --timeout=60s; then
+    
+    echo "=== 7. Exposition sur http://localhost:8080 (via 0.0.0.0) ==="
+    # Maintenant on est SÛR que l'app écoute, on peut lancer le port-forward sereinement
+    kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
+    
+    echo "Déploiement terminé ! Accédez à l'application via http://localhost:8080"
+else
+    echo "Le déploiement a échoué ou a mis trop de temps à démarrer."
+    echo "Vérifie les logs avec : kubectl logs deployment/webapp"
+    exit 1
+fi

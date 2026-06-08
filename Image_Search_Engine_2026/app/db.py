@@ -3,14 +3,26 @@ import bcrypt
 import torch
 import os
 import json
+import time
 
 def get_db():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "db"),
-        user=os.getenv("DB_USER", "appuser"),
-        password=os.getenv("DB_PASSWORD", "apppass"),
-        database=os.getenv("DB_NAME", "appdb")
-    )
+    retries = 10  # Nombre de tentatives maximum
+    while retries > 0:
+        try:
+            # Ta tentative de connexion classique
+            connection = mysql.connector.connect(
+                host="mysql",       # Ou ton host Kubernetes
+                user="root",        # Ton user
+                password="ton_mot_de_passe",
+                database="ton_nom_de_db"
+            )
+            return connection
+        except mysql.connector.Error as err:
+            retries -= 1
+            print(f"[DB] MySQL n'est pas encore prêt ({err}). Nouvelle tentative dans 2 secondes... ({retries} essais restants)")
+            time.sleep(2)
+            
+    raise Exception("Impossible de se connecter à la base de données MySQL après plusieurs tentatives.")
 
 def init_db():
 
