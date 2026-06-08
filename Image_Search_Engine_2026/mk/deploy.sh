@@ -35,10 +35,10 @@ if kubectl rollout status deployment/webapp --timeout=60s; then
     # Attente active (max 5s) que le port réponde réellement
     for i in {1..5}; do
         kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
-        sleep 1
+        sleep 2
         curl -s -I http://localhost:8080/ > /dev/null 2>&1 && break
         echo "Attente du tunnel réseau ($i/5)..."
-        sleep 1
+        sleep 2
     done
 
     if ! curl -s -I http://localhost:8080/ > /dev/null 2>&1; then
