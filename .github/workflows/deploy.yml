@@ -1,4 +1,4 @@
-name: Deploy via SSH Docker Compose
+name: Deploy via SSH Kubernetes
 
 on:
   push:
