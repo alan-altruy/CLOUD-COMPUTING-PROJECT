@@ -3,6 +3,9 @@
 export TMPDIR=$HOME/minikube_build_tmp
 mkdir -p $TMPDIR
 
+# Lancer minikube (si pas déjà lancé) avec 2.5GB de RAM et 2 CPUs pour éviter les problèmes de mémoire
+minikube start --memory=2500 --cpus=2
+
 echo "=== 1. Création / Mise à jour des Volumes ==="
 kubectl apply -f mk/volumes.yml
 
@@ -11,7 +14,8 @@ kubectl create secret generic app-secrets --from-env-file=.env --dry-run=client 
 kubectl create configmap mysql-initdb --from-file=db/init.sql --dry-run=client -o yaml | kubectl apply -f -
 
 echo "=== 3. Build et Déploiement des applications ==="
-# On build la nouvelle image dans le cluster
+# On build la nouvelle image dans le cluster en supprimant les anciennes images pour éviter de saturer le disque
+minikube ssh "docker system prune -f"
 minikube image build -t image-search-webapp:latest .
 
 kubectl apply -f mk/mysql-deployment.yaml
@@ -20,37 +24,6 @@ kubectl rollout restart deployment webapp
 
 echo "=== 4. Activation de l'Autoscaling (HPA) ==="
 kubectl apply -f mk/hpa.yml 
-
-echo "=== 5. Nettoyage des anciens tunnels ==="
-# On tue proprement l'ancien port-forward s'il tournait déjà pour éviter les conflits de port
-pkill -f "port-forward service/webapp-service" || true
-
-echo "=== 6. Attente de la stabilisation du déploiement ==="
-
-# Attend que TOUS les pods du déploiement 'webapp' soient Ready=True
-# --timeout=60s évite que le script ne bloque indéfiniment si ton code Python a une vraie erreur
-echo "Attente que l'application soit prête..."
-if kubectl rollout status deployment/webapp --timeout=60s; then
-    echo "=== 7. Exposition sur http://localhost:8080 (via 0.0.0.0) ==="    
-    # Attente active (max 5s) que le port réponde réellement
-    for i in {1..5}; do
-        kubectl port-forward service/webapp-service 8080:8080 --address='0.0.0.0' > /dev/null 2>&1 &
-        sleep 2
-        curl -s -I http://localhost:8080/ > /dev/null 2>&1 && break
-        echo "Attente du tunnel réseau ($i/5)..."
-        sleep 2
-    done
-
-    if ! curl -s -I http://localhost:8080/ > /dev/null 2>&1; then
-        echo "❌ Échec : Le tunnel port-forward ne répond pas."
-        exit 1
-    fi
-    
-    echo "✅ Déploiement validé sur http://localhost:8080"
-else
-    echo "❌ Échec : Le déploiement n'est pas stable après 60s."
-    exit 1
-fi
 
 # Nettoyage du dossier temporaire de build
 rm -rf $TMPDIR/*
