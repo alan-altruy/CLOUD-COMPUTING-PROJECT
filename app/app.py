@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 import hashlib
 import matplotlib
 
-from app.db import init_db, verify_credentials, log_search, get_search_history, find_search_history, log_image_descriptor, get_image_descriptor
-from app.app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
+from db import init_db, verify_credentials, log_search, get_search_history, find_search_history, log_image_descriptor, get_image_descriptor
+from app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 matplotlib.use('Agg')
 
 app = Flask(__name__)
