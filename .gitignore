@@ -1,5 +1,8 @@
-.venv
-*.txt
-.DS_Store
-.env
 __pycache__
+.DS_Store
+
+app/static/uploads/
+app/static/rp_files/rp_img_files/
+app/static/features/others/
+app/static/image.orig/
+*.txt

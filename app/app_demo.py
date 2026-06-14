@@ -1,6 +1,6 @@
 import os
 import sys
-from app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
+from app.app_utils import extract_combined_model_features, load_features_dict, search_similar_images, generate_rp_curve
 
 image_db_folder = 'static/image.orig' 
 
