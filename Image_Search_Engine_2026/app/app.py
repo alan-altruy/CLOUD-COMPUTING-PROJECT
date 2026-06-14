@@ -192,6 +192,7 @@ def search():
     specified_class = None if request.form.get('image_class') == "" else int(request.form.get('image_class'))
     topn = int(request.form.get('topn'))
     file_path = os.path.join(upload_folder, filename)
+    db_flag = 0  # Flag pour indiquer si les features ont été trouvées dans la base de données
 
     # Vérifie si l’image existe dans le dossier 'uploads'
     if not os.path.exists(file_path):
@@ -223,6 +224,7 @@ def search():
                                                           dist_metric=dist_metric, class_filter=specified_class, topn=topn)
     if images_proches is not None:
         print("[MYAPP] >> Search history found in database, skipping search process.")
+        db_flag = 1
         rp_img_path = generate_rp_curve(specified_class, predicted_class, images_proches, filename=f"rp_{filename}.png")
     else:
         print("[MYAPP] >> No search history found, performing search process.")
@@ -231,6 +233,7 @@ def search():
         t0 = time.time()
         if features_target is not None:
             print("[MYAPP] >> Image descriptor found in database, skipping feature extraction.")
+            db_flag = 2
         else:
             print("[MYAPP] >> No image descriptor found, extracting features...")
             features_target = extract_combined_model_features(file_path, model_names=model_names)
@@ -271,7 +274,8 @@ def search():
         'topn_similar_images': images_proches,
         'rp_curve': rp_img_path,
         'predicted_class': predicted_class,
-        'specified_class': specified_class
+        'specified_class': specified_class,
+        'db_flag': db_flag
     })
 
 @app.route('/history', methods=['GET'])
@@ -279,7 +283,6 @@ def search():
 def history():
     limit = min(request.args.get('limit', 50, type=int), 200)
     return jsonify(get_search_history(session['user'], limit))
-
 
 def deep_update(d, u):
     for k, v in u.items():

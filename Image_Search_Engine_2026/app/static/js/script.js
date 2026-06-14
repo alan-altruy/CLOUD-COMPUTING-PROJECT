@@ -221,6 +221,12 @@ $(document).ready(function () {
                     } else {
                         $('#specified-class').text("Specified class: No class selected");
                     }
+                    
+                    if (data.db_flag === 1) {
+                        alert("Search history found in database, skipping search process.");
+                    } else if (data.db_flag === 2) {
+                        alert("Image descriptor found in database, skipping feature extraction.");
+                    }
 
                     $('#predicted-container').removeClass('d-none');
                     $('#filename').val(data.filename);
