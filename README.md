@@ -31,9 +31,7 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 
 ## Manuel d’utilisation
 
-Voir le [manuel d’utilisation](docs/manuels/MANUEL_D_UTILISATION.md) pour les instructions d’installation et d’utilisation de l’application web, ainsi que pour les démonstrations de persistance des volumes et d’autoscaling.
-
-Voir le [manuel d’utilisation local](docs/manuels/MANUEL_D_UTILISATION_LOCAL.md) pour les instructions d’installation et d’utilisation de l’application local avec argument d’image à analyser.
+Voir le wiki: [Wiki du projet](https://github.com/alan-altruy/CLOUD-COMPUTING-PROJECT/wiki)
 
 ## Liens
 
