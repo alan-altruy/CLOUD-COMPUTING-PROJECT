@@ -6,3 +6,4 @@ app/static/rp_files/rp_img_files/
 app/static/features/others/
 app/static/image.orig/
 *.txt
+.env
