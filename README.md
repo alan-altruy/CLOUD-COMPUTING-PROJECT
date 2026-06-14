@@ -1,11 +1,11 @@
 
 # Multimedia Research Engine
 
-Petit projet réalisé dans le cadre de l'AA « I-ILIA-208: Cloud & Edge Computing  ».
+Projet réalisé dans le cadre de l'AA « I-ILIA-208: Cloud & Edge Computing  ».
 
-But : prototype simple d'un moteur de recherche d'images utilisant des features extraites par deep learning pour retrouver des images similaires.
+But : un moteur de recherche d'images utilisant des features extraites par deep learning pour retrouver des images similaires.
 
-Le principal Objectif de ce projet est de se familiariser avec les concepts de déploiement d'applications dans le cloud, en particulier en utilisant des conteneurs Docker et des services cloud pour héberger une application web.
+Le principal Objectif de ce projet est de se familiariser avec les concepts de déploiement d'applications dans le cloud, en particulier en utilisant des conteneurs Docker et Kubernetes (Minikube). Le projet vise à démontrer la persistance des données dans les volumes Docker et Minikube, ainsi que l'autoscaling horizontal (HPA) de l'application web.
 
 ## Avancement
 
@@ -29,9 +29,11 @@ Le principal Objectif de ce projet est de se familiariser avec les concepts de d
 - Alan Altruy
 - Odan Lafrance
 
-## Usage
+## Manuel d’utilisation
 
-Voir le dossier `Image_Search_Engine_2026` pour l'application web et les ressources.
+Voir le [manuel d’utilisation](docs/manuels/MANUEL_D_UTILISATION.md) pour les instructions d’installation et d’utilisation de l’application web, ainsi que pour les démonstrations de persistance des volumes et d’autoscaling.
+
+Voir le [manuel d’utilisation local](docs/manuels/MANUEL_D_UTILISATION_LOCAL.md) pour les instructions d’installation et d’utilisation de l’application local avec argument d’image à analyser.
 
 ## Liens
 

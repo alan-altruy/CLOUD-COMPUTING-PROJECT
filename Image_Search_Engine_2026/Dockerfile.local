@@ -1,0 +1,16 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# =========================
+# Python deps
+# =========================
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# App source code
+# =========================
+COPY app/app_demo.py .
+COPY app/app_utils.py .
+COPY app/static/ static/
+ENTRYPOINT ["python", "app_demo.py"]

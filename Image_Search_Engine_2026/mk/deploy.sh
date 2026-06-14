@@ -6,6 +6,9 @@ mkdir -p $TMPDIR
 # Lancer minikube (si pas déjà lancé) avec 2.5GB de RAM et 2 CPUs pour éviter les problèmes de mémoire
 minikube start --memory=2500 --cpus=2
 
+# Vérifier que l'addon metrics-server est activé pour l'autoscaling
+minikube addons enable metrics-server
+
 echo "=== 1. Création / Mise à jour des Volumes ==="
 kubectl apply -f mk/volumes.yml
 
