@@ -7,3 +7,4 @@ app/static/features/others/
 app/static/image.orig/
 *.txt
 .env
+.venv/
